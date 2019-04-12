@@ -1,4 +1,3 @@
-# Shamir Secret Sharing Library
 # Techruption: Multi-Party All Night
 
 shamir_secret_sharing.py contains classes:
