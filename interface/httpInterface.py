@@ -21,7 +21,7 @@ class Listener(object):
 #            responseData = await self.response_handle(dict(**data))
 #        except:
 #            responseData = {}
-        return web.HTTPSuccessful()
+        return web.Response()
 
     def start(self):
         web.run_app(self.app)
