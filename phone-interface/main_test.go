@@ -7,6 +7,9 @@ import (
 	"testing"
 )
 
+// IN ADVANCE OF THE TESTS RUN THIS
+// mkfifo /tmp/computeInitiatorOutput
+
 func TestResult(t *testing.T) {
 	results = make(map[string]*Result)
 	req := httptest.NewRequest("POST", "/setresult", strings.NewReader("id=a&result=b\n"))
