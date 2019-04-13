@@ -23,13 +23,13 @@ func WaitForQueries() chan mpc.Query {
 		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
 	}
 
-	gatekeeper, err := NewGateKeeper(common.HexToAddress(SMARTCONTRACT_ADDRESS), conn)
+	gatekeeper, err := NewGovernance(common.HexToAddress(SMARTCONTRACT_ADDRESS), conn)
 	if err != nil {
-		log.Fatalf("Failed to instantiate the GateKeeper contract: %v", err)
+		log.Fatalf("Failed to instantiate the Governance contract: %v", err)
 	}
 	computeAddress, err := gatekeeper.GetContractAddress()
 	if err != nil {
-		log.Fatalf("Failed to talk to the GateKeeper contract: %v", err)
+		log.Fatalf("Failed to talk to the Governance contract: %v", err)
 	}
 
 	// Instantiate the contract and display its name
@@ -59,12 +59,12 @@ func (_ComputeContract *ComputeContract) SubmitQuery(q *mpc.Query) error {
 	return nil
 }
 
-func NewGateKeeper(address common.Address, backend bind.ContractBackend) (*GateKeeper, error) {
+func NewGovernance(address common.Address, backend bind.ContractBackend) (*Governance, error) {
 	return nil, nil
 }
 
-type GateKeeper struct{}
+type Governance struct{}
 
-func (_GateKeeper *GateKeeper) GetContractAddress() (common.Address, error) {
+func (_Governance *Governance) GetContractAddress() (common.Address, error) {
 	return common.HexToAddress("0x0"), nil
 }

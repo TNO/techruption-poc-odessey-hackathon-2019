@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"log"
-	"math/big"
 	"net/http"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/odysseyhack/mpan-compute-initiator/mpc"
 	"github.com/odysseyhack/techruption-multi-party-all-night/phone-interface/smartcontract"
@@ -15,7 +15,7 @@ import (
 var ch chan mpc.Query
 
 func main() {
-	results = make(map[uint64]*Result)
+	results = make(map[string]*Result)
 
 	ch = smartcontract.WaitForQueries()
 
@@ -26,7 +26,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
 
-var results map[uint64]*Result
+var results map[string]*Result
 
 type Result []byte
 
@@ -38,13 +38,13 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.PostForm["function"][0] {
 	case "info":
-		id := time.Now().Unix()
 		identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
+		id := uuid.New().String()
 		q := &mpc.Query{
-			QueryType:  mpc.QUERY_TYPE_INFO,
-			Identifier: identifier,
-			Attribute:  0,
-			QueryId:    big.NewInt(id),
+			QueryType:       mpc.QUERY_TYPE_INFO,
+			Identifier:      identifier,
+			Attribute:       0,
+			ClientReference: id,
 		}
 		blockchainSubmit(q)
 		w.WriteHeader(http.StatusCreated)
@@ -57,12 +57,12 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
 		attribute, _ := strconv.Atoi(r.PostForm["attribute"][0])
 
-		id := time.Now().Unix()
+		id := uuid.New().String()
 		q := &mpc.Query{
-			QueryType:  mpc.QUERY_TYPE_CALC,
-			Identifier: identifier,
-			Attribute:  attribute,
-			QueryId:    big.NewInt(id),
+			QueryType:       mpc.QUERY_TYPE_CALC,
+			Identifier:      identifier,
+			Attribute:       attribute,
+			ClientReference: id,
 		}
 		blockchainSubmit(q)
 		w.WriteHeader(http.StatusCreated)
@@ -83,8 +83,7 @@ func getResultHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request: parameter id missing", http.StatusBadRequest)
 	}
 
-	id, _ := strconv.ParseUint(r.PostForm["id"][0], 10, 64)
-	if result := results[id]; result == nil {
+	if result := results[strings.TrimSpace(r.PostForm["id"][0])]; result == nil {
 		w.WriteHeader(http.StatusNoContent)
 	} else {
 		w.Write([]byte(*result))
@@ -97,10 +96,10 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request: parameter id or result missing", http.StatusBadRequest)
 	}
 
-	id, _ := strconv.ParseUint(r.PostForm["id"][0], 10, 64)
+	id := strings.TrimSpace(r.PostForm["id"][0])
 	result := r.PostForm["result"][0]
 
-	if id == 0 || len(result) == 0 {
+	if len(id) == 0 || len(result) == 0 {
 		http.Error(w, "Bad request: parameter id == 0 or result == \"\"", http.StatusBadRequest)
 	}
 
