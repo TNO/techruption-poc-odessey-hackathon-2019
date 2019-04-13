@@ -12,7 +12,7 @@ import copy
 
 toySubstanceList = ['ammonia', 'gasoline']
 toyCategoryList = ['B2', 'C3']
-toyMaxVolume = 30000
+toyMaxVolume = 1000000
 
 toyDatabase = [
         {'Container ID': '6', 
