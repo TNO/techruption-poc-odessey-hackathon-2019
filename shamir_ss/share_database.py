@@ -23,7 +23,7 @@ toyDatabase = [
 
 
 
-def share_database(plaintextDatabase = plaintextDatabaseExample, n=11, r=4, substanceList = toySubstanceList, categoryList = toyCategoryList, maxVolume = toyMaxVoluem):
+def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = toySubstanceList, categoryList = toyCategoryList, maxVolume = toyMaxVolume):
     P = sympy.nextprime( max(n+1, maxVolume) ) # Need enough numbers to encode all possible volumes, and at least n+1 due to Shamir secret sharing properties
     t = r-1
     enhancedDatabase = {
@@ -31,17 +31,27 @@ def share_database(plaintextDatabase = plaintextDatabaseExample, n=11, r=4, subs
             'n' : n,
             'r' : r,
             't' : t,
-            'Entries' : plaintextDatabase }
-    databaseShares = enhancedDatabase # placeholder for now
-    # WIP code
-    # scheme = ShamirSecretSharingScheme(P, n, t)
-    # databaseShares = [enhancedDatabase for _ in range(n)]
-    # for share in databaseShares:
-    #     enhancedDatabase['entries'[i in 0:len(plaintextDatabase)]['Volume']]
+            'Containers' : plaintextDatabase }
 
-    return secretDatabase
+    # Initialize secret-sharing scheme
+    SSScheme = ShamirSecretSharingScheme(P, n, t)
+    # Initialize database shares as copies of the enhanced database
+    databaseShares = [enhancedDatabase for _ in range(n)]
 
-if __name__ == "__main__":
-    from toy_databases import plaintextDatabaseExample
-    secretDatabase = share_database(plaintextDatabaseExample, 11, 4)
-    print(secretDatabase)
+    # Share each 'Volume' entry of each substance of each container
+    for containerIndex in range(len(plaintextDatabase)):
+        container = plaintextDatabase[containerIndex]
+        containerContent = container['Content']
+        for substanceIndex in range(len(substanceList)):
+            substance = containerContent[substanceIndex]
+            substanceVolume = int(substance['Volume'])
+            Shares = SSScheme.share_secret(substanceVolume)
+            for pID in range(n):
+                databaseShares[pID]['Containers'][containerIndex]['Content'][substanceIndex]['Volume'] = str(Shares.shares[pID])
+
+    return databaseShares, Shares
+
+# if __name__ == "__main__":
+#     # from toy_databases import plaintextDatabaseExample
+#     databaseShares = share_database(plaintextDatabaseExample, 11, 4)
+#     print(databaseShares)
