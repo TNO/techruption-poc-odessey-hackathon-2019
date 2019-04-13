@@ -105,7 +105,7 @@ func getResultHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	} else {
 		log.Printf("Content: %s", *result)
-		w.Write([]byte(*result))
+		w.Write(append([]byte(*result), '\n'))
 	}
 }
 
