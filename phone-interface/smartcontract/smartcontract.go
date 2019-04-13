@@ -3,6 +3,7 @@ package smartcontract
 //go:generate abigen -abi governance.abi -pkg smartcontract -type Governance -out gatekeeper.go
 
 import (
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -21,38 +22,35 @@ const (
 	PASSPHRASE            = "mpc_123"
 )
 
-func WaitForQueries() chan mpc.Query {
-	ch := make(chan mpc.Query)
+func GetGatekeeper() (*Gatekeeper, error) {
 	conn, err := ethclient.Dial(ETHEREUM_URL)
 	if err != nil {
-		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
+		return nil, fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
 	}
 
 	governance, err := NewGovernance(common.HexToAddress(SMARTCONTRACT_ADDRESS), conn)
 	if err != nil {
-		log.Fatalf("Failed to instantiate the Governance contract: %v", err)
+		return nil, fmt.Errorf("Failed to instantiate the Governance contract: %v", err)
 	}
 	computeAddress, err := governance.GetGatekeeperAddress(nil)
 	if err != nil {
-		log.Fatalf("Failed to talk to the Governance contract: %v", err)
+		return nil, fmt.Errorf("Failed to talk to the Governance contract: %v", err)
 	}
 
-	// Instantiate the contract and display its name
-	gatekeeper, err := NewGatekeeper(computeAddress, conn)
-	if err != nil {
-		log.Fatalf("Failed to instantiate the Compute contract: %v", err)
-	}
+	return NewGatekeeper(computeAddress, conn)
+}
 
+func GetTxOpts() (*bind.TransactOpts, error) {
 	// Prepare keys etc for transactions
 	f, err := os.Open(KEYFILE)
 	if err != nil {
 		log.Fatalf("Failed to open key file: %v", err)
 	}
-	txOpts, err := bind.NewTransactor(f, PASSPHRASE)
-	if err != nil {
-		log.Fatalf("Failed to create transactor: %v", err)
-	}
+	return bind.NewTransactor(f, PASSPHRASE)
+}
 
+func QueryChannel(gatekeeper *Gatekeeper, txOpts *bind.TransactOpts) chan mpc.Query {
+	ch := make(chan mpc.Query)
 	go func() {
 		for {
 			q := <-ch
@@ -84,4 +82,19 @@ func WaitForQueries() chan mpc.Query {
 	}()
 
 	return ch
+}
+
+func WaitForQueries() chan mpc.Query {
+	// Instantiate the contract and display its name
+	gatekeeper, err := GetGatekeeper()
+	if err != nil {
+		log.Fatalf("Failed to instantiate the Compute contract: %v", err)
+	}
+
+	txOpts, err := GetTxOpts()
+	if err != nil {
+		log.Fatalf("Failed to create transactor: %v", err)
+	}
+
+	return QueryChannel(gatekeeper, txOpts)
 }
