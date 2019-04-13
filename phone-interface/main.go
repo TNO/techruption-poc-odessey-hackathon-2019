@@ -100,7 +100,7 @@ func getResultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := results[strings.TrimSpace(r.PostForm["id"][0])]; result == nil {
+	if result := results[strings.TrimSpace(r.Form["id"][0])]; result == nil {
 		log.Println("No content")
 		w.WriteHeader(http.StatusNoContent)
 	} else {
