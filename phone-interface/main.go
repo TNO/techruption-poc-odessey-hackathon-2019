@@ -39,6 +39,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	if len(r.PostForm["function"]) == 0 || len(r.PostForm["identifier"]) == 0 {
 		log.Println("Bad request: parameter function or identifier missing")
 		http.Error(w, "Bad request: parameter function or identifier missing", http.StatusBadRequest)
+		return
 	}
 
 	switch r.PostForm["function"][0] {
@@ -60,6 +61,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		if len(r.PostForm["attribute"]) == 0 {
 			log.Println("Bad request: parameter attribute missing")
 			http.Error(w, "Bad request: parameter attribute missing", http.StatusBadRequest)
+			return
 		}
 		identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
 		attribute, _ := strconv.Atoi(r.PostForm["attribute"][0])
@@ -77,8 +79,9 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%v\n", id)
 
 	default:
-		log.Println("Bad request: function must be info or mpc")
-		http.Error(w, "Bad request: function must be info or mpc", http.StatusBadRequest)
+		log.Println("Bad request: function must be info or calc")
+		http.Error(w, "Bad request: function must be info or calc", http.StatusBadRequest)
+		return
 	}
 }
 
@@ -94,6 +97,7 @@ func getResultHandler(w http.ResponseWriter, r *http.Request) {
 	if len(r.Form["id"]) == 0 {
 		log.Println("Bad request: parameter id missing")
 		http.Error(w, "Bad request: parameter id missing", http.StatusBadRequest)
+		return
 	}
 
 	if result := results[strings.TrimSpace(r.PostForm["id"][0])]; result == nil {
@@ -112,6 +116,7 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 	if len(r.PostForm["id"]) == 0 || len(r.PostForm["result"]) == 0 {
 		log.Println("Bad request: parameter id or result missing")
 		http.Error(w, "Bad request: parameter id or result missing", http.StatusBadRequest)
+		return
 	}
 
 	id := strings.TrimSpace(r.PostForm["id"][0])
@@ -120,6 +125,7 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 || len(result) == 0 {
 		log.Println("Bad request: parameter id == 0 or result == \"\"")
 		http.Error(w, "Bad request: parameter id == 0 or result == \"\"", http.StatusBadRequest)
+		return
 	}
 
 	rs := Result(result)
