@@ -31,12 +31,17 @@ def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = t
             'n' : n,
             'r' : r,
             't' : t,
+            'pID' : None,
             'Containers' : plaintextDatabase }
 
-    # Initialize secret-sharing scheme
-    SSScheme = ShamirSecretSharingScheme(P, n, t)
     # Initialize database shares as copies of the enhanced database
     databaseShares = [enhancedDatabase for _ in range(n)]
+    # Add Party ID fields
+    for pID in range(n):
+        databaseShares[pID]['pID'] = str(pID)
+
+    # Create secret-sharing scheme object
+    SSScheme = ShamirSecretSharingScheme(P, n, t)
 
     # Share each 'Volume' entry of each substance of each container
     for containerIndex in range(len(plaintextDatabase)):
@@ -47,9 +52,11 @@ def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = t
             substanceVolume = int(substance['Volume'])
             Shares = SSScheme.share_secret(substanceVolume)
             for pID in range(n):
+                # print('Now writing share number ', pID, 'of container ', containerIndex, ', substance ', substanceIndex)
+                # print('Its value should be ', str(Shares.shares[pID]))
                 databaseShares[pID]['Containers'][containerIndex]['Content'][substanceIndex]['Volume'] = str(Shares.shares[pID])
 
-    return databaseShares, Shares
+    return databaseShares, SSScheme, Shares
 
 # if __name__ == "__main__":
 #     # from toy_databases import plaintextDatabaseExample
