@@ -12,7 +12,7 @@ from compute_on_share import mpc_compute
 
 queryTypes = [ 'Container content', 'Substance amount' ]
 
-def reconstruct_value(Scheme, shares, queryType):
+def reconstruct_value(SSScheme, shares, queryType):
 
     if queryType == 'Container content' :
         # P = shares[0]['P']
@@ -24,11 +24,11 @@ def reconstruct_value(Scheme, shares, queryType):
         # print(container)
         # Then reconstruct each substance volume and fill it in
         for substanceIndex in range(len(shares[0]['Share']['Content'])):
-            substanceShares = [int(shares[pID]['Share']['Content'][substanceIndex]['Volume']) for pID in range(Scheme.n)]
+            substanceShares = [int(shares[pID]['Share']['Content'][substanceIndex]['Volume']) for pID in range(SSScheme.n)]
             # print(len(substanceShares))
-            # print(Scheme.n)
-            # print(Scheme.t)
-            substanceShares = Shares(Scheme, substanceShares, Scheme.t)
+            # print(SSScheme.n)
+            # print(SSScheme.t)
+            substanceShares = Shares(SSScheme, substanceShares, SSScheme.t)
             substanceVolume = substanceShares.reconstruct_secret()
             container['Content'][substanceIndex]['Volume'] = substanceVolume
         return container
@@ -37,18 +37,18 @@ def reconstruct_value(Scheme, shares, queryType):
         pass
 
     else:
-        return 'ERRRRROR!'
+        return 'ERRRRROR! Unknown query type'
 
 if __name__ == "__main__":
     import share_database
     n = 11
     r = 4
     containerTarget = '13'
-    databaseShares, Scheme, testShares = share_database.share_database()
+    databaseShares, SSScheme, testShares = share_database.share_database()
     containerShares = []
     for pID in range(n):
-        containerShare = mpc_compute(databaseShares[pID], 'Container content', containerTarget)
+        containerShare = mpc_compute(SSScheme, databaseShares[pID], 'Container content', containerTarget)
         containerShares.append(containerShare)
 
-    container = reconstruct_value(Scheme, containerShares, 'Container content')
+    container = reconstruct_value(SSScheme, containerShares, 'Container content')
     print(container)
