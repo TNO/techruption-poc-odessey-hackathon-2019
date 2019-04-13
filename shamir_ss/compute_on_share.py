@@ -60,7 +60,7 @@ def mpc_compute(databaseShare, queryType, target):
 
 if __name__ == "__main__":
     import share_database
-    databaseShares, testShares = share_database.share_database()
+    databaseShares, Scheme, testShares = share_database.share_database()
     share = mpc_compute(databaseShares[2], 'Container content', '13')
     print(share)
 
