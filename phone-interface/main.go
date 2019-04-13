@@ -23,6 +23,8 @@ func main() {
 	http.HandleFunc("/getresult", getResultHandler)
 	http.HandleFunc("/setresult", setResultHandler)
 
+	log.Println("Setup complete, listening...")
+
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
 
@@ -31,8 +33,11 @@ var results map[string]*Result
 type Result []byte
 
 func queryHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Got a query")
+
 	r.ParseForm()
 	if len(r.PostForm["function"]) == 0 || len(r.PostForm["identifier"]) == 0 {
+		log.Println("Bad request: parameter function or identifier missing")
 		http.Error(w, "Bad request: parameter function or identifier missing", http.StatusBadRequest)
 	}
 
@@ -47,11 +52,13 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			ClientReference: id,
 		}
 		blockchainSubmit(q)
+		log.Println("INFO created")
 		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "id=%v\n", id)
 
 	case "calc": // not called yet?
 		if len(r.PostForm["attribute"]) == 0 {
+			log.Println("Bad request: parameter attribute missing")
 			http.Error(w, "Bad request: parameter attribute missing", http.StatusBadRequest)
 		}
 		identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
@@ -65,34 +72,45 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			ClientReference: id,
 		}
 		blockchainSubmit(q)
+		log.Println("CALC created")
 		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "%v\n", id)
 
 	default:
+		log.Println("Bad request: function must be info or mpc")
 		http.Error(w, "Bad request: function must be info or mpc", http.StatusBadRequest)
 	}
 }
 
 func blockchainSubmit(query *mpc.Query) {
+	log.Printf("Submitting %+v", *query)
 	ch <- *query
 }
 
 func getResultHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Got a request for result")
+
 	r.ParseForm()
 	if len(r.Form["id"]) == 0 {
+		log.Println("Bad request: parameter id missing")
 		http.Error(w, "Bad request: parameter id missing", http.StatusBadRequest)
 	}
 
 	if result := results[strings.TrimSpace(r.PostForm["id"][0])]; result == nil {
+		log.Println("No content")
 		w.WriteHeader(http.StatusNoContent)
 	} else {
+		log.Printf("Content: %s", *result)
 		w.Write([]byte(*result))
 	}
 }
 
 func setResultHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Got a submission of a result")
+
 	r.ParseForm()
 	if len(r.PostForm["id"]) == 0 || len(r.PostForm["result"]) == 0 {
+		log.Println("Bad request: parameter id or result missing")
 		http.Error(w, "Bad request: parameter id or result missing", http.StatusBadRequest)
 	}
 
@@ -100,11 +118,13 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 	result := r.PostForm["result"][0]
 
 	if len(id) == 0 || len(result) == 0 {
+		log.Println("Bad request: parameter id == 0 or result == \"\"")
 		http.Error(w, "Bad request: parameter id == 0 or result == \"\"", http.StatusBadRequest)
 	}
 
 	rs := Result(result)
 	results[id] = &rs
 
+	log.Printf("Created")
 	w.WriteHeader(http.StatusCreated)
 }
