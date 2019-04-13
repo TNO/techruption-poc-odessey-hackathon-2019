@@ -13,7 +13,7 @@ import (
 
 const (
 	SMARTCONTRACT_ADDRESS = "0x368f79382cc5a7b769134369a2de7f5b97b28041"
-	ETHEREUM_URL          = "ws://134.221.210.18:8546"
+	ETHEREUM_URL          = "ws://127.0.0.1:8546"
 )
 
 func WaitForQueries() chan mpc.Query {
