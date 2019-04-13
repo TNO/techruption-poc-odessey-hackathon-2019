@@ -50,7 +50,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "id=%v\n", id)
 
-	case "mpc": // not called yet?
+	case "calc": // not called yet?
 		if len(r.PostForm["attribute"]) == 0 {
 			http.Error(w, "Bad request: parameter attribute missing", http.StatusBadRequest)
 		}
@@ -66,7 +66,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		blockchainSubmit(q)
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "id=%v\n", id)
+		fmt.Fprintf(w, "%v\n", id)
 
 	default:
 		http.Error(w, "Bad request: function must be info or mpc", http.StatusBadRequest)
