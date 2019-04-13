@@ -8,10 +8,14 @@
 '''
 
 from shamir_secret_sharing import *
+import sys
+sys.path.append('../')
+import config
 
 queryTypes = [ 'Container content', 'Substance amount' ]
 
-def reconstruct_value(SSScheme, shares, queryType):
+def reconstruct_value(shares, SSScheme=config.SSScheme):
+    queryType = shares[0]['queryType']
 
     if queryType == 'Container content' :
         # P = shares[0]['P']
@@ -53,7 +57,7 @@ if __name__ == "__main__":
     containerTarget = '13'
     substanceTarget = 'gasoline'
     print('TEMPORARY: Sharing database')
-    databaseShares, SSScheme, testShares = share_database.share_database()
+    databaseShares = share_database.share_database()
 
     # Option 0
     # containerShares = []
@@ -69,8 +73,8 @@ if __name__ == "__main__":
     substanceAmountShares = []
     print('Retrieving shares relative to substance ', substanceTarget)
     for pID in range(n):
-        substanceAmountShare = mpc_compute(SSScheme, databaseShares[pID], 'Substance amount', substanceTarget)
+        substanceAmountShare = mpc_compute(databaseShares[pID], 'Substance amount', substanceTarget)
         substanceAmountShares.append(substanceAmountShare)
     print('Reconstructing substance amount')
-    substanceAmount = reconstruct_value(SSScheme, substanceAmountShares, 'Substance amount')
+    substanceAmount = reconstruct_value(substanceAmountShares)
     print(substanceAmount)

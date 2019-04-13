@@ -7,6 +7,9 @@
 '''
 
 from shamir_secret_sharing import *
+import sys
+sys.path.append('../')
+import config
 
 queryTypes = [ 'Container content', 'Substance amount' ]
 
@@ -47,11 +50,13 @@ def search_substance_index(substanceTarget, substanceList):
             return index
 
 
-def mpc_compute(SSScheme, databaseShare, queryType, target):
+def mpc_compute(databaseShare, queryType, target, SSScheme=config.SSScheme):
 
     if queryType == 'Container content':
         targetIndex = search_container_index(target, databaseShare['Containers'])
         share = {
+            'queryType' : queryType,
+            'target' : target,
             'P' : databaseShare['P'],
             'n' : databaseShare['n'],
             'r' : databaseShare['r'],
@@ -64,6 +69,8 @@ def mpc_compute(SSScheme, databaseShare, queryType, target):
     if queryType == 'Substance amount':
         # Initialize share with 0 amount of substance
         share = {
+            'queryType' : queryType,
+            'target' : target,
             'P' : databaseShare['P'],
             'n' : databaseShare['n'],
             'r' : databaseShare['r'],
@@ -83,14 +90,14 @@ def mpc_compute(SSScheme, databaseShare, queryType, target):
         return share
 
     else:
-        raise ValueError('ERRRRRROR! Unknown query type')
+        raise ValueError('Unknown query type')
 
 
 if __name__ == "__main__":
     import share_database
-    databaseShares, SSScheme, testShares = share_database.share_database()
+    databaseShares = share_database.share_database()
     # print('Retrieving share of player 2 relating to content of container 13')
     # share = mpc_compute(SSScheme, databaseShares[2], 'Container content', '13')
     print('Retrieving sum of shares of player 2 relating to ammonia')
-    share = mpc_compute(SSScheme, databaseShares[2], 'Substance amount', 'ammonia')
+    share = mpc_compute(databaseShares[2], 'Substance amount', 'ammonia')
     print(share)

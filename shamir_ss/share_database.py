@@ -9,6 +9,9 @@
 from shamir_secret_sharing import *
 import sympy
 import copy
+import sys
+sys.path.append('../')
+import config
 
 toySubstanceList = ['ammonia', 'gasoline']
 toyCategoryList = ['B2', 'C3']
@@ -24,9 +27,9 @@ toyDatabase = [
 
 
 
-def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = toySubstanceList, categoryList = toyCategoryList, maxVolume = toyMaxVolume):
-    P = sympy.nextprime( max(n+1, maxVolume) ) # Need enough numbers to encode all possible volumes, and at least n+1 due to Shamir secret sharing properties
-    t = r-1
+def share_database(plaintextDatabase = toyDatabase, n=config.n, r=config.r, t=config.t, P=config.P, SSScheme=config.SSScheme, substanceList = toySubstanceList, categoryList = toyCategoryList, maxVolume = toyMaxVolume):
+    # P = sympy.nextprime( max(n+1, maxVolume) ) # Need enough numbers to encode all possible volumes, and at least n+1 due to Shamir secret sharing properties
+    # t = r-1
     enhancedDatabase = {
             'P' : P,
             'n' : n,
@@ -43,7 +46,7 @@ def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = t
         databaseShares[pID]['pID'] = str(pID)
 
     # Create secret-sharing scheme object
-    SSScheme = ShamirSecretSharingScheme(P, n, t)
+    # SSScheme = ShamirSecretSharingScheme(P, n, t)
 
     # Share each 'Volume' entry of each substance of each container
     for containerIndex in range(len(plaintextDatabase)):
@@ -59,9 +62,8 @@ def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = t
                 databaseShares[pID]['Containers'][containerIndex]['Content'][substanceIndex]['Volume'] = str(Shares.shares[pID])
                 # print('database share: ', databaseShares[pID]['Containers'][containerIndex]['Content'][substanceIndex]['Volume'] )
 
-    return databaseShares, SSScheme, Shares
+    return databaseShares
 
-# if __name__ == "__main__":
-#     # from toy_databases import plaintextDatabaseExample
-#     databaseShares = share_database(plaintextDatabaseExample, 11, 4)
-#     print(databaseShares)
+if __name__ == "__main__":
+    databaseShares = share_database()
+    print(databaseShares)
