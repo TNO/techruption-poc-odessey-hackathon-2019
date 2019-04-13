@@ -3,3 +3,4 @@ exclude:
 - /phone-interface/smartcontract/gatekeeper.go
 - /data_generation/records.py
 - /shamir_ss/share_database.py
+- /shamir_ss/shamir_secret_sharing.py
