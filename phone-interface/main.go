@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/odysseyhack/mpan-compute-initiator/mpc"
 	"github.com/odysseyhack/techruption-multi-party-all-night/phone-interface/smartcontract"
@@ -35,18 +37,22 @@ type Result []byte
 func queryHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Got a query")
 
-	r.ParseForm()
-	if len(r.PostForm["function"]) == 0 || len(r.PostForm["identifier"]) == 0 {
-		badRequest(w, "Bad request: parameter function or identifier missing")
+	// Android client is interesting: it sends json. Parse it
+	result := struct{ Function, Identifier, Attribute string }{}
+	err := json.NewDecoder(r.Body).Decode(&result)
+	if err != nil {
+		badRequest(w, fmt.Sprint(err))
 		return
 	}
+	identifier, _ := strconv.Atoi(result.Identifier)
+	attribute, _ := strconv.Atoi(result.Attribute)
 
-	switch r.PostForm["function"][0] {
+	switch result.Function {
 	case "info":
-		queryHandlerInfo(w, r)
+		queryHandlerInfo(w, identifier)
 
-	case "calc": // not called yet?
-		queryHandlerCalc(w, r)
+	case "calc":
+		queryHandlerCalc(w, identifier, attribute)
 
 	default:
 		badRequest(w, "Bad request: function must be info or calc")
@@ -54,8 +60,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func queryHandlerInfo(w http.ResponseWriter, r *http.Request) {
-	identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
+func queryHandlerInfo(w http.ResponseWriter, identifier int) {
 	id := uuid.New().String()
 	q := &mpc.Query{
 		QueryType:       mpc.QUERY_TYPE_INFO,
@@ -66,17 +71,10 @@ func queryHandlerInfo(w http.ResponseWriter, r *http.Request) {
 	blockchainSubmit(q)
 	log.Println("INFO created")
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "%v\n", id)
+	fmt.Fprintf(w, `{"id":"%v"}`, id)
 }
 
-func queryHandlerCalc(w http.ResponseWriter, r *http.Request) {
-	if len(r.PostForm["attribute"]) == 0 {
-		badRequest(w, "Bad request: parameter attribute missing")
-		return
-	}
-	identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
-	attribute, _ := strconv.Atoi(r.PostForm["attribute"][0])
-
+func queryHandlerCalc(w http.ResponseWriter, identifier int, attribute int) {
 	id := uuid.New().String()
 	q := &mpc.Query{
 		QueryType:       mpc.QUERY_TYPE_CALC,
@@ -87,7 +85,7 @@ func queryHandlerCalc(w http.ResponseWriter, r *http.Request) {
 	blockchainSubmit(q)
 	log.Println("CALC created")
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "%v\n", id)
+	fmt.Fprintf(w, `{"id":"%v"}`, id)
 }
 
 func blockchainSubmit(query *mpc.Query) {
@@ -104,12 +102,22 @@ func getResultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := results[strings.TrimSpace(r.Form["id"][0])]; result == nil {
-		log.Println("No content")
-		w.WriteHeader(http.StatusNoContent)
-	} else {
-		log.Printf("Content: %s", *result)
-		w.Write(append([]byte(*result), '\n'))
+	log.Printf("Will wait for result %v", r.Form["id"][0])
+
+	for {
+		result := results[strings.TrimSpace(r.Form["id"][0])]
+		if result != nil {
+			log.Printf("Content: %s", *result)
+			w.Write(append([]byte(*result), '\n'))
+			log.Printf("Gave result %v", r.Form["id"][0])
+			return
+		}
+		select {
+		case <-time.After(time.Second):
+		case <-r.Context().Done():
+			log.Printf("Client gave up on %v", r.Form["id"][0])
+			return
+		}
 	}
 }
 
