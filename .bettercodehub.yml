@@ -1,3 +1,4 @@
 exclude:
 - /phone-interface/smartcontract/governance.go
 - /phone-interface/smartcontract/gatekeeper.go
+- /data_generation/records.py
