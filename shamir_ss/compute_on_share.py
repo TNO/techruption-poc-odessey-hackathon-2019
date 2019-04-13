@@ -36,8 +36,18 @@ def search_container_index(containerTarget, containerList):
         if containerList[index]['Container ID'] == containerTarget:
             return index
 
+def search_substance_index(substanceTarget, substanceList):
+    '''
+    Functions that looks for a substance with a given name
+    in a list of substances, and returns its index.
+    It is assumed that the substances in the list appear only once.
+    '''
+    for index in range(len(substanceList)):
+        if substanceList[index]['Name'] == substanceTarget:
+            return index
 
-def mpc_compute(databaseShare, queryType, target):
+
+def mpc_compute(SSScheme, databaseShare, queryType, target):
 
     if queryType == 'Container content':
         targetIndex = search_container_index(target, databaseShare['Containers'])
@@ -52,16 +62,35 @@ def mpc_compute(databaseShare, queryType, target):
         return share
 
     if queryType == 'Substance amount':
-        pass
+        # Initialize share with 0 amount of substance
+        share = {
+            'P' : databaseShare['P'],
+            'n' : databaseShare['n'],
+            'r' : databaseShare['r'],
+            't' : databaseShare['t'],
+            'pID' : databaseShare['pID'],
+            'Share' : {
+                'Substance category' : 'TBD',
+                'Name' : target,
+                'Volume' : '0',
+                'Unit' : 'litre' } }
+
+        containers = databaseShare['Containers']
+        for container in containers:
+            substanceIndex = search_substance_index(target, container['Content'])
+            share['Share']['Volume'] = str(int(share['Share']['Volume']) + int(container['Content'][substanceIndex]['Volume']) % SSScheme.P)
+
+        return share
 
     else:
-        return 'ERRRRRROR!'
+        raise ValueError('ERRRRRROR! Unknown query type')
 
 
 if __name__ == "__main__":
     import share_database
-    databaseShares, Scheme, testShares = share_database.share_database()
-    share = mpc_compute(databaseShares[2], 'Container content', '13')
+    databaseShares, SSScheme, testShares = share_database.share_database()
+    # print('Retrieving share of player 2 relating to content of container 13')
+    # share = mpc_compute(SSScheme, databaseShares[2], 'Container content', '13')
+    print('Retrieving sum of shares of player 2 relating to ammonia')
+    share = mpc_compute(SSScheme, databaseShares[2], 'Substance amount', 'ammonia')
     print(share)
-
-
