@@ -55,7 +55,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		blockchainSubmit(q)
 		log.Println("INFO created")
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "id=%v\n", id)
+		fmt.Fprintf(w, "%v\n", id)
 
 	case "calc": // not called yet?
 		if len(r.PostForm["attribute"]) == 0 {
