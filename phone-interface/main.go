@@ -37,52 +37,57 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	if len(r.PostForm["function"]) == 0 || len(r.PostForm["identifier"]) == 0 {
-		log.Println("Bad request: parameter function or identifier missing")
-		http.Error(w, "Bad request: parameter function or identifier missing", http.StatusBadRequest)
+		badRequest(w, "Bad request: parameter function or identifier missing")
 		return
 	}
 
 	switch r.PostForm["function"][0] {
 	case "info":
-		identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
-		id := uuid.New().String()
-		q := &mpc.Query{
-			QueryType:       mpc.QUERY_TYPE_INFO,
-			Identifier:      identifier,
-			Attribute:       0,
-			ClientReference: id,
-		}
-		blockchainSubmit(q)
-		log.Println("INFO created")
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "%v\n", id)
+		queryHandlerInfo(w, r)
 
 	case "calc": // not called yet?
-		if len(r.PostForm["attribute"]) == 0 {
-			log.Println("Bad request: parameter attribute missing")
-			http.Error(w, "Bad request: parameter attribute missing", http.StatusBadRequest)
-			return
-		}
-		identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
-		attribute, _ := strconv.Atoi(r.PostForm["attribute"][0])
-
-		id := uuid.New().String()
-		q := &mpc.Query{
-			QueryType:       mpc.QUERY_TYPE_CALC,
-			Identifier:      identifier,
-			Attribute:       attribute,
-			ClientReference: id,
-		}
-		blockchainSubmit(q)
-		log.Println("CALC created")
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "%v\n", id)
+		queryHandlerCalc(w, r)
 
 	default:
-		log.Println("Bad request: function must be info or calc")
-		http.Error(w, "Bad request: function must be info or calc", http.StatusBadRequest)
+		badRequest(w, "Bad request: function must be info or calc")
 		return
 	}
+}
+
+func queryHandlerInfo(w http.ResponseWriter, r *http.Request) {
+	identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
+	id := uuid.New().String()
+	q := &mpc.Query{
+		QueryType:       mpc.QUERY_TYPE_INFO,
+		Identifier:      identifier,
+		Attribute:       0,
+		ClientReference: id,
+	}
+	blockchainSubmit(q)
+	log.Println("INFO created")
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprintf(w, "%v\n", id)
+}
+
+func queryHandlerCalc(w http.ResponseWriter, r *http.Request) {
+	if len(r.PostForm["attribute"]) == 0 {
+		badRequest(w, "Bad request: parameter attribute missing")
+		return
+	}
+	identifier, _ := strconv.Atoi(r.PostForm["identifier"][0])
+	attribute, _ := strconv.Atoi(r.PostForm["attribute"][0])
+
+	id := uuid.New().String()
+	q := &mpc.Query{
+		QueryType:       mpc.QUERY_TYPE_CALC,
+		Identifier:      identifier,
+		Attribute:       attribute,
+		ClientReference: id,
+	}
+	blockchainSubmit(q)
+	log.Println("CALC created")
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprintf(w, "%v\n", id)
 }
 
 func blockchainSubmit(query *mpc.Query) {
@@ -95,8 +100,7 @@ func getResultHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	if len(r.Form["id"]) == 0 {
-		log.Println("Bad request: parameter id missing")
-		http.Error(w, "Bad request: parameter id missing", http.StatusBadRequest)
+		badRequest(w, "Bad request: parameter id missing")
 		return
 	}
 
@@ -114,8 +118,7 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	if len(r.PostForm["id"]) == 0 || len(r.PostForm["result"]) == 0 {
-		log.Println("Bad request: parameter id or result missing")
-		http.Error(w, "Bad request: parameter id or result missing", http.StatusBadRequest)
+		badRequest(w, "Bad request: parameter id or result missing")
 		return
 	}
 
@@ -123,8 +126,7 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 	result := r.PostForm["result"][0]
 
 	if len(id) == 0 || len(result) == 0 {
-		log.Println("Bad request: parameter id == 0 or result == \"\"")
-		http.Error(w, "Bad request: parameter id == 0 or result == \"\"", http.StatusBadRequest)
+		badRequest(w, "Bad request: parameter id == \"\" or result == \"\"")
 		return
 	}
 
@@ -133,4 +135,9 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Created %v -> %v", id, rs)
 	w.WriteHeader(http.StatusCreated)
+}
+
+func badRequest(w http.ResponseWriter, message string) {
+	log.Println("Bad request: " + message)
+	http.Error(w, "Bad request: "+message, http.StatusBadRequest)
 }
