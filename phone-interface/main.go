@@ -9,10 +9,15 @@ import (
 	"time"
 
 	"github.com/odysseyhack/mpan-compute-initiator/mpc"
+	"github.com/odysseyhack/techruption-multi-party-all-night/phone-interface/smartcontract"
 )
+
+var ch chan mpc.Query
 
 func main() {
 	results = make(map[uint64]*Result)
+
+	ch = smartcontract.WaitForQueries()
 
 	http.HandleFunc("/query", queryHandler)
 	http.HandleFunc("/getresult", getResultHandler)
@@ -69,7 +74,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func blockchainSubmit(query *mpc.Query) {
-
+	ch <- *query
 }
 
 func getResultHandler(w http.ResponseWriter, r *http.Request) {
