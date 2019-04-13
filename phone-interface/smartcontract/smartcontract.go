@@ -78,7 +78,7 @@ func WaitForQueries() chan mpc.Query {
 			if err != nil {
 				log.Printf("Error submitting query, %v", err)
 			} else {
-				log.Printf("Successfully submitted query, tx %v", tx)
+				log.Printf("Successfully submitted query, tx %+v", tx)
 			}
 		}
 	}()
