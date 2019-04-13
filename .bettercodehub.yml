@@ -1,0 +1,3 @@
+exclude:
+- phone-interface/smartcontract/governance.go
+- phone-interface/smartcontract/gatekeeper.go
