@@ -8,7 +8,6 @@
 '''
 
 from shamir_secret_sharing import *
-from compute_on_share import mpc_compute
 
 queryTypes = [ 'Container content', 'Substance amount' ]
 
@@ -34,21 +33,44 @@ def reconstruct_value(SSScheme, shares, queryType):
         return container
 
     if queryType == 'Substance amount' :
-        pass
+        # Initialize substance amount dictionary as first share
+        substanceAmount = shares[0]['Share']
+        # Then reconstruct each substance volume and fill it in
+        substanceVolumeShares = [int(shares[pID]['Share']['Volume']) for pID in range(n)]
+        substanceVolumeShares = Shares(SSScheme, substanceVolumeShares, SSScheme.t)
+        substanceVolume = substanceVolumeShares.reconstruct_secret()
+        substanceAmount['Volume'] = str(substanceVolume)
+        return substanceAmount
 
     else:
-        return 'ERRRRROR! Unknown query type'
+        raise ValueError('ERRRRROR! Unknown query type')
 
 if __name__ == "__main__":
     import share_database
+    from compute_on_share import mpc_compute
     n = 11
     r = 4
     containerTarget = '13'
+    substanceTarget = 'gasoline'
+    print('TEMPORARY: Sharing database')
     databaseShares, SSScheme, testShares = share_database.share_database()
-    containerShares = []
-    for pID in range(n):
-        containerShare = mpc_compute(SSScheme, databaseShares[pID], 'Container content', containerTarget)
-        containerShares.append(containerShare)
 
-    container = reconstruct_value(SSScheme, containerShares, 'Container content')
-    print(container)
+    # Option 0
+    # containerShares = []
+    # print('Retrieving shares relative to container ', containerTarget)
+    # for pID in range(n):
+    #     containerShare = mpc_compute(SSScheme, databaseShares[pID], 'Container content', containerTarget)
+    #     containerShares.append(containerShare)
+    # print('Reconstructing container content')
+    # container = reconstruct_value(SSScheme, containerShares, 'Container content')
+    # print(container)
+
+    # Option 1
+    substanceAmountShares = []
+    print('Retrieving shares relative to substance ', substanceTarget)
+    for pID in range(n):
+        substanceAmountShare = mpc_compute(SSScheme, databaseShares[pID], 'Substance amount', substanceTarget)
+        substanceAmountShares.append(substanceAmountShare)
+    print('Reconstructing substance amount')
+    substanceAmount = reconstruct_value(SSScheme, substanceAmountShares, 'Substance amount')
+    print(substanceAmount)
