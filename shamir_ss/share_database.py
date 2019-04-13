@@ -5,9 +5,10 @@
     corresponding to several containers.
 '''
 
-from toy_databases import *
+# from toy_databases import *
 from shamir_secret_sharing import *
 import sympy
+import copy
 
 toySubstanceList = ['ammonia', 'gasoline']
 toyCategoryList = ['B2', 'C3']
@@ -35,9 +36,10 @@ def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = t
             'Containers' : plaintextDatabase }
 
     # Initialize database shares as copies of the enhanced database
-    databaseShares = [enhancedDatabase for _ in range(n)]
+    databaseShares = [copy.deepcopy(enhancedDatabase) for _ in range(n)]
     # Add Party ID fields
     for pID in range(n):
+        # print('pID: ', pID)
         databaseShares[pID]['pID'] = str(pID)
 
     # Create secret-sharing scheme object
@@ -55,6 +57,7 @@ def share_database(plaintextDatabase = toyDatabase, n=11, r=4, substanceList = t
                 # print('Now writing share number ', pID, 'of container ', containerIndex, ', substance ', substanceIndex)
                 # print('Its value should be ', str(Shares.shares[pID]))
                 databaseShares[pID]['Containers'][containerIndex]['Content'][substanceIndex]['Volume'] = str(Shares.shares[pID])
+                # print('database share: ', databaseShares[pID]['Containers'][containerIndex]['Content'][substanceIndex]['Volume'] )
 
     return databaseShares, SSScheme, Shares
 
