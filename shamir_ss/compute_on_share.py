@@ -10,6 +10,7 @@ from shamir_secret_sharing import *
 import sys
 sys.path.append('../')
 import config
+import interface.httpInterface as httpInterface
 
 queryTypes = [ 'Container content', 'Substance amount' ]
 
@@ -36,8 +37,10 @@ def search_container_index(containerTarget, containerList):
     It is assumed that the container IDs in the list are unique.
     '''
     for index in range(len(containerList)):
-        if containerList[index]['Container ID'] == containerTarget:
+        if containerList[index]['Container ID'] == str(containerTarget):
             return index
+
+    return -1
 
 def search_substance_index(substanceTarget, substanceList):
     '''
@@ -48,6 +51,8 @@ def search_substance_index(substanceTarget, substanceList):
     for index in range(len(substanceList)):
         if substanceList[index]['Name'] == substanceTarget:
             return index
+
+    return -1
 
 
 def mpc_compute(databaseShare, queryType, target, SSScheme=config.SSScheme):
@@ -92,12 +97,36 @@ def mpc_compute(databaseShare, queryType, target, SSScheme=config.SSScheme):
     else:
         raise ValueError('Unknown query type')
 
+import share_database
+import json
+import asyncio
 
 if __name__ == "__main__":
-    import share_database
     databaseShares = share_database.share_database()
+    for i in range(4):
+        async start(i, databaseShares[i])
+
+def start(param, share):
     # print('Retrieving share of player 2 relating to content of container 13')
     # share = mpc_compute(SSScheme, databaseShares[2], 'Container content', '13')
-    print('Retrieving sum of shares of player 2 relating to ammonia')
-    share = mpc_compute(databaseShares[2], 'Substance amount', 'ammonia')
-    print(share)
+    print('Starting')
+    targetUrl = ''
+    requestor = httpInterface.Requestor(config.responseUrl)
+    fh = open("/home/mpc/compute-initiator/fifo" + str(param), 'r')
+    loop = asyncio.get_event_loop()
+    while True:
+        text = fh.readline()
+        print("Received: ", text)
+        data = json.loads(text)
+	
+        queryType = data['QueryType']
+        # identifier = data['Identifier'] # Ensure this number is in database
+        identifier = 1
+        attribute = data['Attribute']
+        clientReference = data['ClientReference']
+        queryTypeList = ['Container content', 'Substance amount']
+        share = mpc_compute(share, queryTypeList[queryType], identifier)
+        jsonData = json.dumps(share)
+        print('Compute done: ', share)
+        result = loop.run_until_complete(requestor.send_request(jsonData))
+        print('Result: ', json.loads(result['data']))

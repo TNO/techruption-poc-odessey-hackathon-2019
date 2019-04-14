@@ -8,6 +8,7 @@ Created on Sat Apr 13 16:12:34 2019
 import httpInterface
 import sys
 sys.path.append('../')
+sys.path.append('../shamir_ss')
 from shamir_ss.reconstruct_value import reconstruct_value
 import config
 

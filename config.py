@@ -19,5 +19,4 @@ maxVolume = 1e7
 P = sympy.nextprime( max(n+1, maxVolume) ) # Need enough numbers to encode all possible volumes, and at least n+1 due to Shamir secret sharing properties
 SSScheme = ShamirSecretSharingScheme(P,n,t)
 
-responseUrl = None
-combinerUrl = None
+responseUrl = "http://localhost:8080"

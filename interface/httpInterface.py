@@ -9,8 +9,9 @@ from aiohttp import web
 import aiohttp
 
 class Listener(object):
-    def __init__(self, response_handle):
+    def __init__(self, response_handle, port=8080):
         self.app = web.Application()
+        self.port = port
         self.response_handle = response_handle
         self.app.add_routes([web.post('/', self.handler)])
         
@@ -24,7 +25,7 @@ class Listener(object):
         return web.Response()
 
     def start(self):
-        web.run_app(self.app)
+        web.run_app(self.app, port=self.port)
 
 class Requestor(object):
     def __init__(self, url):
@@ -37,6 +38,12 @@ class Requestor(object):
                 body = await resp.text()
                 return {"status":status, "body":body}
 
+    async def send_json(self, data):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(self.url, json=data) as resp:
+                status = resp.status
+                body = await resp.text()
+                return {"status":status, "body":body}
 
 if __name__ == "__main__":
     def handle(arg):

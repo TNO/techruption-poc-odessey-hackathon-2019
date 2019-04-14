@@ -47,7 +47,7 @@ def generate_container(containerID, minVolume=14, maxVolume=27):
     contentsList[index]["Volume"] = vol
     return {"Container ID": containerID, "Content": contentsList}
 
-def generate_containers(number, maxIdIncrement = 10):
+def generate_containers(number, maxIdIncrement = 1):
     containerList = []
     currId = 0
     for i in range(number):
