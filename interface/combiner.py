@@ -27,33 +27,34 @@ class Combiner(object):
             self.requestMap[key] = []
 
     def has_sufficient_data(self, requestId, share):
-        return self.requestMap[requestId] >= share['r']
+        return len(self.requestMap[requestId]) >= share['r']
 
     def request(self, requestId, share):
+        print(type(share))
         #Create entry if it does not exist yet
         self.ensure_key_exists(requestId)
         
         #Append request data
-        self.requestMap[requestId] += share
+        self.requestMap[requestId].append(share)
         
         if self.has_sufficient_data(requestId, share):
             print('Sufficient shares collected!')
             shares = self.requestMap[requestId]
             #Todo (Joost): queue task in worker pool
-            value = reconstruct_value(self.SSScheme, shares)
-            print('Combining completed!')
-            data = {"id": requestId, "result": value}
-            loop.run_until_complete(self.requestor.send_request(data))
-    
+            value = reconstruct_value(shares, SSScheme=self.SSScheme)
+            data = {"id": requestId, "result": json.dumps(value)}
+            print('Combining completed!', data)
+            asyncio.ensure_future(self.requestor.send_request(data))
+
     def handle_request(self, data):
-        body = data["body"]
+        body = data
         requestId = body['id']
         share = body['share']
-        return loop.run_until_complete(self.request(requestId, share))
+        return self.request(requestId, share)
     
     def start(self):
         self.listener.start()
                 
 if __name__ == "__main__":
-    combiner = Combiner(config.SSScheme, config.responseUrl)
+    combiner = Combiner(config.SSScheme, config.phoneInterfaceUrl)
     combiner.start()

@@ -122,7 +122,7 @@ def start(param, share):
         clientReference = data['ClientReference']
         queryTypeList = ['Container content', 'Substance amount']
         share = mpc_compute(share, queryTypeList[queryType], identifier)
-        jsonData = json.dumps(share)
+        jsonData = json.dumps(dict({"id": clientReference, "share": share}))
         print('Compute done: ', share)
         result = loop.run_until_complete(requestor.send_request(jsonData))
         #print('Result: ', json.loads(result['data']))

@@ -20,3 +20,4 @@ P = sympy.nextprime( max(n+1, maxVolume) ) # Need enough numbers to encode all p
 SSScheme = ShamirSecretSharingScheme(P,n,t)
 
 responseUrl = "http://localhost:8080"
+phoneInterfaceUrl = "http://localhost:80/setresult"

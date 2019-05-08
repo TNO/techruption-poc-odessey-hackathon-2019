@@ -15,6 +15,7 @@ import config
 queryTypes = [ 'Container content', 'Substance amount' ]
 
 def reconstruct_value(shares, SSScheme=config.SSScheme):
+    print(shares)
     queryType = shares[0]['queryType']
 
     if queryType == 'Container content' :
@@ -27,7 +28,7 @@ def reconstruct_value(shares, SSScheme=config.SSScheme):
         # print(container)
         # Then reconstruct each substance volume and fill it in
         for substanceIndex in range(len(shares[0]['Share']['Content'])):
-            substanceShares = [int(shares[pID]['Share']['Content'][substanceIndex]['Volume']) for pID in range(SSScheme.n)]
+            substanceShares = [int(s['Share']['Content'][substanceIndex]['Volume']) for s in shares]
             # print(len(substanceShares))
             # print(SSScheme.n)
             # print(SSScheme.t)
@@ -40,7 +41,7 @@ def reconstruct_value(shares, SSScheme=config.SSScheme):
         # Initialize substance amount dictionary as first share
         substanceAmount = shares[0]['Share']
         # Then reconstruct each substance volume and fill it in
-        substanceVolumeShares = [int(shares[pID]['Share']['Volume']) for pID in range(n)]
+        substanceVolumeShares = [int(s['Share']['Volume']) for s in shares]
         substanceVolumeShares = Shares(SSScheme, substanceVolumeShares, SSScheme.t)
         substanceVolume = substanceVolumeShares.reconstruct_secret()
         substanceAmount['Volume'] = str(substanceVolume)
