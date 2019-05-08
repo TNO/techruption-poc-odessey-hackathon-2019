@@ -141,7 +141,7 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 	rs := Result(result)
 	results[id] = &rs
 
-	log.Printf("Created %v -> %v", id, rs)
+	log.Printf("Created %v -> %v", id, string(rs))
 	w.WriteHeader(http.StatusCreated)
 }
 
