@@ -46,11 +46,9 @@ class Combiner(object):
             loop.run_until_complete(self.requestor.send_request(data))
     
     def handle_request(self, data):
-        print(data)
-        print(type(data))
-        data = json.loads(data["body"])
-        requestId = data['id']
-        share = data['share']
+        body = data["body"]
+        requestId = body['id']
+        share = body['share']
         return loop.run_until_complete(self.request(requestId, share))
     
     def start(self):

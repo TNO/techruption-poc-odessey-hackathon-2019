@@ -16,7 +16,7 @@ class Listener(object):
         self.app.add_routes([web.post('/', self.handler)])
         
     async def handler(self, request):
-        data = await request.post()
+        data = await request.json()
         response = self.response_handle(dict(**data))
         #try:
         #    responseData = await self.response_handle(dict(**data))
