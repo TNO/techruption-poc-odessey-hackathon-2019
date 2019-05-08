@@ -17,12 +17,13 @@ class Listener(object):
         
     async def handler(self, request):
         data = await request.post()
-        self.response_handle(dict(**data))
-#        try:
-#            responseData = await self.response_handle(dict(**data))
-#        except:
-#            responseData = {}
-        return web.Response()
+        response = self.response_handle(dict(**data))
+        #try:
+        #    responseData = await self.response_handle(dict(**data))
+        #except:
+        #    responseData = {}
+        #return web.Response()
+        return responseData
 
     def start(self):
         web.run_app(self.app, port=self.port)

@@ -51,8 +51,9 @@ def generate_containers(number, maxIdIncrement = 1):
     containerList = []
     currId = 0
     for i in range(number):
-        currId += np.random.randint(1, maxIdIncrement)
-        containerId = "{0:d}".format(currId)
+        # currId += np.random.randint(1, maxIdIncrement)
+        # containerId = "{0:d}".format(currId)
+        containerId = str(i)
         nextContainer = generate_container(containerId)
         containerList.append(nextContainer)
     return containerList
@@ -76,3 +77,8 @@ def generate_ships(number, maxIncrement = 10, minContainers=100, maxContainers=1
 
 def find_ship(shipList, containerId):
     return [ship for ship in shipList if containerId in ship["Container list"]]
+
+if __name__ == "__main__":
+    generate_containers(1000)
+    
+

@@ -11,6 +11,8 @@ sys.path.append('../')
 sys.path.append('../shamir_ss')
 from shamir_ss.reconstruct_value import reconstruct_value
 import config
+import asyncio
+import json
 
 class Combiner(object):
     def __init__(self, SSScheme, responseUrl):
@@ -18,6 +20,7 @@ class Combiner(object):
         self.SSScheme = SSScheme
         self.requestor = httpInterface.Requestor(responseUrl)
         self.listener = httpInterface.Listener(self.handle_request)
+        self.loop = asyncio.get_event_loop()
 
     def ensure_key_exists(self, key):
         if key not in self.requestMap.keys():
@@ -40,12 +43,15 @@ class Combiner(object):
             value = reconstruct_value(self.SSScheme, shares)
             print('Combining completed!')
             data = {"id": requestId, "result": value}
-            self.requestor.send_request(data)
+            loop.run_until_complete(self.requestor.send_request(data))
     
-    async def handle_request(self, data):
+    def handle_request(self, data):
+        print(data)
+        print(type(data))
+        data = json.loads(data["body"])
         requestId = data['id']
         share = data['share']
-        return self.request(requestId, share)
+        return loop.run_until_complete(self.request(requestId, share))
     
     def start(self):
         self.listener.start()

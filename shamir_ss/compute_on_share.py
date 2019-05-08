@@ -101,10 +101,6 @@ import share_database
 import json
 import asyncio
 
-if __name__ == "__main__":
-    databaseShares = share_database.share_database()
-    for i in range(4):
-        async start(i, databaseShares[i])
 
 def start(param, share):
     # print('Retrieving share of player 2 relating to content of container 13')
@@ -129,4 +125,30 @@ def start(param, share):
         jsonData = json.dumps(share)
         print('Compute done: ', share)
         result = loop.run_until_complete(requestor.send_request(jsonData))
-        print('Result: ', json.loads(result['data']))
+        #print('Result: ', json.loads(result['data']))
+
+def main():
+    databaseShares = share_database.share_database()
+    fh0=open("share0", "wb")
+    fh1=open("share1", "wb")
+    fh2=open("share2", "wb")
+    fh3=open("share3", "wb")
+    import pickle
+    pickle.dump(databaseShares[0], fh0)
+    pickle.dump(databaseShares[1], fh1)
+    pickle.dump(databaseShares[2], fh2)
+    pickle.dump(databaseShares[3], fh3)
+    fh0.close()
+    fh1.close()
+    fh2.close()
+    fh3.close()
+    
+
+if __name__ == "__main__":
+    #main()
+    index = sys.argv[1]
+    fh = open("share"+index,"rb")
+    import pickle
+    share = pickle.load(fh)
+    fh.close()
+    start(int(index), share)
