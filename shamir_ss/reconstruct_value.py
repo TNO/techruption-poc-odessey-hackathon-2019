@@ -15,6 +15,8 @@ import config
 queryTypes = [ 'Container content', 'Substance amount' ]
 
 def reconstruct_value(shares, SSScheme=config.SSScheme):
+    # The shares should be sorted by pID for the reconscruction to work
+    shares.sort(key = lambda s: int(s['pID']))
     print(shares)
     queryType = shares[0]['queryType']
 
