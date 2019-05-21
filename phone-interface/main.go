@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/odysseyhack/mpan-compute-initiator/mpc"
@@ -17,8 +18,6 @@ import (
 var ch chan mpc.Query
 
 func main() {
-	results = make(map[string]*Result)
-
 	ch = smartcontract.WaitForQueries()
 
 	http.HandleFunc("/query", queryHandler)
@@ -30,7 +29,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
 
-var results map[string]*Result
+var results sync.Map // string -> *Result
 
 type Result []byte
 
@@ -105,8 +104,9 @@ func getResultHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Will wait for result %v", r.Form["id"][0])
 
 	for {
-		result := results[strings.TrimSpace(r.Form["id"][0])]
-		if result != nil {
+		resultIF, ok := results.Load(strings.TrimSpace(r.Form["id"][0]))
+		if ok {
+			result := resultIF.(*Result)
 			log.Printf("Content: %s", *result)
 			w.Write(append([]byte(*result), '\n'))
 			log.Printf("Gave result %v", r.Form["id"][0])
@@ -139,7 +139,7 @@ func setResultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rs := Result(result)
-	results[id] = &rs
+	results.Store(id, &rs)
 
 	log.Printf("Created %v -> %v", id, string(rs))
 	w.WriteHeader(http.StatusCreated)
